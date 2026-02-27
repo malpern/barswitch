@@ -2,6 +2,12 @@
 
 A lightweight macOS daemon that coordinates between [SketchyBar](https://github.com/FelixKratz/SketchyBar) and the native macOS menu bar.
 
+<p align="center">
+  <img src="demo.gif" alt="The native macOS menu bar sliding down over SketchyBar, causing an ugly overlap" width="800">
+  <br>
+  <em>Without BarSwitch: the native menu bar appears on top of SketchyBar when you move the mouse to the top of the screen</em>
+</p>
+
 ## The Problem
 
 If you use SketchyBar with the native macOS menu bar set to "auto-hide," both bars fight for the same space at the top of the screen. When you move your mouse up to reveal the native menu bar, it slides down *over* SketchyBar, creating an ugly overlap. There's no built-in way to coordinate them.
