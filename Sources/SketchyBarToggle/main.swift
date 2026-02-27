@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import SketchyBarToggleCore
 
-let version = "0.3.0"
+let version = "0.3.1"
 
 // MARK: - Parse arguments
 
@@ -138,9 +138,13 @@ func runSetup() {
         print("  [!!] SketchyBar does not appear to be running")
     }
 
-    // topmost setting
+    // topmost setting (SketchyBar normalizes "window" to "on" in query output)
     if report.topmostCorrect {
-        print("  [ok] topmost = \"window\"")
+        if report.topmostValue == "on" {
+            print("  [ok] topmost = \"on\" (SketchyBar reports \"window\" as \"on\")")
+        } else {
+            print("  [ok] topmost = \"\(report.topmostValue ?? "window")\"")
+        }
     } else if let val = report.topmostValue {
         print("  [!!] topmost = \"\(val)\" (must be \"window\")")
     } else if report.sketchyBarRunning {

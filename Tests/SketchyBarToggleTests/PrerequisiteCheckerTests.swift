@@ -14,6 +14,14 @@ final class PrerequisiteCheckerTests: XCTestCase {
         XCTAssertEqual(checker.parseTopmost(from: json), "window")
     }
 
+    func testParseTopmostOn() {
+        // sketchybar normalizes topmost="window" to "on" in query output
+        let json = """
+        {"topmost": "on", "hidden": "off"}
+        """
+        XCTAssertEqual(checker.parseTopmost(from: json), "on")
+    }
+
     func testParseTopmostOff() {
         let json = """
         {"topmost": "off", "hidden": "off"}

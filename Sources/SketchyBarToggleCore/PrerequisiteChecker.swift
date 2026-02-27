@@ -47,7 +47,8 @@ public final class PrerequisiteChecker {
             issues.append("SketchyBar does not appear to be running")
             topmostCorrect = false
         } else if let val = topmostVal {
-            topmostCorrect = val == "window"
+            // sketchybar normalizes topmost="window" to "on" in query output
+            topmostCorrect = val == "window" || val == "on"
             if !topmostCorrect {
                 issues.append("SketchyBar topmost is set to \"\(val)\" — it must be \"window\" for sketchybar-toggle to work")
             }
