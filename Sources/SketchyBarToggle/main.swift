@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import SketchyBarToggleCore
 
-let version = "0.3.1"
+let version = "0.3.2"
 
 // MARK: - Parse arguments
 
@@ -217,19 +217,47 @@ func printSetupInstructions(configFile: URL, format: ConfigFormat) {
     print("Then restart SketchyBar: brew services restart sketchybar")
 }
 
+// Shared state for the permission check callback (C callbacks can't capture context)
+private var permissionCheckReceived = false
+
 func checkInputMonitoringPermission() -> Bool {
-    let tap = CGEvent.tapCreate(
+    // On modern macOS, CGEvent.tapCreate with .listenOnly can succeed even
+    // without Input Monitoring permission — events are silently dropped.
+    // We verify permission by creating a tap, posting a synthetic event,
+    // and checking if the callback actually fires.
+    permissionCheckReceived = false
+
+    let mask: CGEventMask = (1 << CGEventType.mouseMoved.rawValue)
+    guard let tap = CGEvent.tapCreate(
         tap: .cghidEventTap,
         place: .headInsertEventTap,
         options: .listenOnly,
-        eventsOfInterest: (1 << CGEventType.mouseMoved.rawValue),
-        callback: { _, _, event, _ in Unmanaged.passUnretained(event) },
+        eventsOfInterest: mask,
+        callback: { _, _, event, _ in
+            permissionCheckReceived = true
+            return Unmanaged.passUnretained(event)
+        },
         userInfo: nil
-    )
-
-    if let tap = tap {
-        CGEvent.tapEnable(tap: tap, enable: false)
-        return true
+    ) else {
+        return false
     }
-    return false
+
+    let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+    CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+    CGEvent.tapEnable(tap: tap, enable: true)
+
+    // Post a synthetic mouse-moved event to trigger the callback
+    if let syntheticEvent = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved,
+                                     mouseCursorPosition: CGEvent(source: nil)?.location ?? .zero,
+                                     mouseButton: .left) {
+        syntheticEvent.post(tap: .cghidEventTap)
+    }
+
+    // Spin the run loop briefly to allow the callback to fire
+    CFRunLoopRunInMode(.defaultMode, 0.5, false)
+
+    CGEvent.tapEnable(tap: tap, enable: false)
+    CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+
+    return permissionCheckReceived
 }
