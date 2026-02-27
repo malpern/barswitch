@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" alt="SketchyBar Toggle icon" width="200">
+</p>
+
 # SketchyBar Toggle
 
 A lightweight macOS daemon that coordinates between [SketchyBar](https://github.com/FelixKratz/SketchyBar) and the native macOS menu bar.
