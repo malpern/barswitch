@@ -54,6 +54,8 @@ The result: you get SketchyBar as your primary status bar, with seamless access 
 brew install malpern/tap/sketchybar-toggle
 ```
 
+No special permissions are required — sketchybar-toggle uses `NSEvent.mouseLocation` polling which works without Input Monitoring or Accessibility permission.
+
 ### Build from source
 
 ```bash
@@ -74,17 +76,6 @@ cp .build/release/sketchybar-toggle /usr/local/bin/
 
 Requires Swift 5.9+ and macOS 13 (Ventura) or later.
 
-### Grant Input Monitoring permission
-
-SketchyBar Toggle needs **Input Monitoring** permission to track mouse position:
-
-1. Run `sketchybar-toggle` — macOS will prompt you to grant permission, or it will print an error
-2. Go to **System Settings > Privacy & Security > Input Monitoring**
-3. Add and enable the `sketchybar-toggle` binary
-4. Restart sketchybar-toggle after granting permission
-
-You can verify with `sketchybar-toggle --check-permissions`.
-
 ## SketchyBar Configuration
 
 SketchyBar Toggle works best when your SketchyBar bar settings allow for smooth hide/show transitions. SketchyBar Toggle controls your bar using:
@@ -100,6 +91,8 @@ Your SketchyBar config **must** include `topmost = "window"`. This tells Sketchy
 -- In your bar config (e.g., bar.lua or init.lua)
 sbar.bar({ topmost = "window", ... })
 ```
+
+> **Note:** `sketchybar --query bar` reports `topmost = "on"` for both `topmost=on` and `topmost=window`. This is a SketchyBar limitation — it stores the distinction internally but the query output doesn't differentiate. If you set `"window"` in your config, the query showing `"on"` is expected and correct.
 
 ### Optional: transparent bar style
 
@@ -170,7 +163,7 @@ cp com.sketchybar-toggle.agent.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.sketchybar-toggle.agent.plist
 ```
 
-> **Note:** Edit the plist if your binary isn't at `/usr/local/bin/sketchybar-toggle` — update the path in `ProgramArguments`.
+> **Note:** The plist uses `HOMEBREW_PREFIX/bin/sketchybar-toggle`. Edit it if your binary is at a different path. On Apple Silicon Macs, the default Homebrew prefix is `/opt/homebrew`; on Intel Macs, it's `/usr/local`.
 
 To stop:
 
@@ -192,8 +185,8 @@ sketchybar-toggle --trigger-zone 10 --menu-bar-height 50 --debounce 150
 # Show auto-start setup instructions
 sketchybar-toggle --setup
 
-# Check permissions
-sketchybar-toggle --check-permissions
+# Enable debug logging
+sketchybar-toggle --debug
 
 # Print version
 sketchybar-toggle --version
@@ -207,9 +200,11 @@ sketchybar-toggle --version
 | `--menu-bar-height <px>` | 50 | Distance from top defining the menu bar zone — SketchyBar won't reappear until the mouse is below this |
 | `--debounce <ms>` | 150 | Delay in milliseconds before SketchyBar reappears, prevents flicker on rapid mouse movement |
 | `--setup` | | Check prerequisites and show auto-start instructions |
-| `--check-permissions` | | Check if Input Monitoring permission is granted |
+| `--debug` | | Log mouse position and state changes to `/tmp/sketchybar-toggle-debug.log` |
 | `--version` | | Print version |
 | `--help` | | Show help |
+
+You can also enable debug logging via the `SKETCHYBAR_TOGGLE_DEBUG=1` environment variable.
 
 ### Tuning tips
 
@@ -228,14 +223,14 @@ Your SketchyBar config is missing `topmost = "window"`. Add it to your bar setti
 After changing "Automatically hide and show the menu bar" in System Settings, run `killall Dock` to force macOS to apply the change immediately.
 
 **sketchybar-toggle is running but nothing happens**
-Run `sketchybar-toggle --setup` to check prerequisites. The most common cause is a missing `topmost = "window"` setting in SketchyBar.
+Run `sketchybar-toggle --setup` to check prerequisites. The most common cause is a missing `topmost = "window"` setting in SketchyBar. You can also run with `--debug` to see if mouse events are being detected and what coordinates are being reported.
 
 **SketchyBar stays hidden after sketchybar-toggle crashes or is force-killed**
 Run `sketchybar --bar hidden=off` to restore it manually. Under normal shutdown (Ctrl+C or SIGTERM), sketchybar-toggle restores SketchyBar automatically.
 
 ## How It Works
 
-SketchyBar Toggle uses a passive [CGEventTap](https://developer.apple.com/documentation/coregraphics/cgevent) to monitor mouse movement at the Core Graphics level. This is event-driven (zero CPU when the mouse isn't moving) and works globally across all apps, including fullscreen.
+SketchyBar Toggle polls `NSEvent.mouseLocation` at ~60Hz to track the mouse cursor's distance from the top of the current screen. This approach requires no special macOS permissions (no Input Monitoring, no Accessibility) and works reliably across `brew upgrade` cycles.
 
 The core logic is a simple state machine:
 
@@ -263,7 +258,7 @@ sketchybar-toggle/
 │   ├── SketchyBarToggleCore/              # Library — all testable logic
 │   │   ├── BarController.swift            # Protocol for bar control (enables mocking)
 │   │   ├── StateMachine.swift             # State machine: visible ↔ hidden with debounce
-│   │   ├── EventTap.swift                 # CGEventTap setup + screen geometry
+│   │   ├── EventTap.swift                 # Mouse position polling + screen geometry
 │   │   ├── SketchyBarController.swift     # Shells out to sketchybar CLI
 │   │   ├── PrerequisiteChecker.swift      # Verifies topmost, menu bar auto-hide
 │   │   └── Config.swift                   # CLI argument parsing
@@ -280,7 +275,8 @@ sketchybar-toggle/
 - macOS 13+ (Ventura)
 - [SketchyBar](https://github.com/FelixKratz/SketchyBar)
 - Swift 5.9+ (build only)
-- No runtime dependencies — uses only system frameworks (CoreGraphics, AppKit, Foundation)
+- No runtime dependencies — uses only system frameworks (AppKit, Foundation)
+- No special permissions required
 
 ## License
 

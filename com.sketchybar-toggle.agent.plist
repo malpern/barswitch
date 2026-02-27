@@ -7,7 +7,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/sketchybar-toggle</string>
+        <string>/opt/homebrew/bin/sketchybar-toggle</string>
     </array>
 
     <key>RunAtLoad</key>
