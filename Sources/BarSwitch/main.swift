@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import BarSwitchCore
 
-let version = "0.1.0"
+let version = "0.2.0"
 
 // MARK: - Parse arguments
 
