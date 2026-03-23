@@ -52,6 +52,16 @@ public final class BarStateMachine {
         }
     }
 
+    /// Process a mouse click while in the hidden state.
+    /// If the click is outside the trigger zone, immediately restore SketchyBar
+    /// so that window title bars near the top of the screen remain interactive.
+    public func handleMouseClick(distanceFromTop: CGFloat) {
+        guard state == .hidden, distanceFromTop >= triggerZone else { return }
+        cancelDebounce()
+        state = .visible
+        controller.show()
+    }
+
     /// Force a transition to visible. Used on startup/shutdown to restore SketchyBar.
     public func forceVisible() {
         cancelDebounce()

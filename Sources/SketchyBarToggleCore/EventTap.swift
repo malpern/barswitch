@@ -10,6 +10,7 @@ public final class EventTapMonitor {
     private var pollTimer: DispatchSourceTimer?
     private let pollInterval: TimeInterval
     private var pollCount = 0
+    private var wasMouseDown = false
 
     public init(
         stateMachine: BarStateMachine,
@@ -55,6 +56,14 @@ public final class EventTapMonitor {
         if distanceFromTop < 60 || pollCount <= 3 || pollCount % 1000 == 0 {
             debugLog?("poll#\(pollCount) dist=\(Int(distanceFromTop)) state=\(stateMachine.state)")
         }
+
+        // Detect mouse button press (bit 0 = left button)
+        let isMouseDown = NSEvent.pressedMouseButtons & 0x1 != 0
+        if isMouseDown && !wasMouseDown {
+            debugLog?("poll#\(pollCount) click detected dist=\(Int(distanceFromTop)) state=\(stateMachine.state)")
+            stateMachine.handleMouseClick(distanceFromTop: distanceFromTop)
+        }
+        wasMouseDown = isMouseDown
 
         stateMachine.handleMousePosition(distanceFromTop: distanceFromTop)
     }
