@@ -245,6 +245,71 @@ final class StateMachineTests: XCTestCase {
         XCTAssertEqual(sm2.state, .visible)
     }
 
+    // MARK: - Click-to-restore behavior
+
+    func testClickInHiddenStateOutsideTriggerZoneRestoresBar() {
+        let mock = MockBarController()
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+
+        sm.handleMousePosition(distanceFromTop: 5) // hide
+        XCTAssertEqual(sm.state, .hidden)
+        mock.reset()
+
+        sm.handleMouseClick(distanceFromTop: 30) // click in menu bar zone but outside trigger
+        XCTAssertEqual(sm.state, .visible)
+        XCTAssertEqual(mock.showCallCount, 1)
+    }
+
+    func testClickInHiddenStateInsideTriggerZoneDoesNotRestore() {
+        let mock = MockBarController()
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+
+        sm.handleMousePosition(distanceFromTop: 5) // hide
+        XCTAssertEqual(sm.state, .hidden)
+
+        sm.handleMouseClick(distanceFromTop: 5) // click still in trigger zone (using menu bar)
+        XCTAssertEqual(sm.state, .hidden)
+    }
+
+    func testClickInVisibleStateIsIgnored() {
+        let mock = MockBarController()
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+
+        sm.handleMouseClick(distanceFromTop: 30) // click while visible
+        XCTAssertEqual(sm.state, .visible)
+        XCTAssertEqual(mock.showCallCount, 0) // no redundant show call
+    }
+
+    func testClickCancelsPendingDebounce() {
+        let mock = MockBarController()
+        let sm = BarStateMachine(
+            controller: mock,
+            triggerZone: 10,
+            menuBarHeight: 50,
+            debounceInterval: 0.1
+        )
+
+        sm.handleMousePosition(distanceFromTop: 5)  // hide
+        sm.handleMousePosition(distanceFromTop: 60) // leave menu bar zone, starts debounce
+        XCTAssertTrue(sm.hasPendingDebounce)
+
+        sm.handleMouseClick(distanceFromTop: 60) // click while debounce pending
+        XCTAssertEqual(sm.state, .visible)
+        XCTAssertFalse(sm.hasPendingDebounce) // debounce cancelled, immediate restore
+    }
+
+    func testClickBelowMenuBarZoneRestoresBar() {
+        let mock = MockBarController()
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+
+        sm.handleMousePosition(distanceFromTop: 5) // hide
+        mock.reset()
+
+        sm.handleMouseClick(distanceFromTop: 100) // click well below menu bar
+        XCTAssertEqual(sm.state, .visible)
+        XCTAssertEqual(mock.showCallCount, 1)
+    }
+
     func testCustomMenuBarHeight() {
         let mock = MockBarController()
         let sm = BarStateMachine(
