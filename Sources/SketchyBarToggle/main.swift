@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import SketchyBarToggleCore
 
-let version = "0.4.0"
+let version = "0.5.0"
 
 // MARK: - Parse arguments
 
