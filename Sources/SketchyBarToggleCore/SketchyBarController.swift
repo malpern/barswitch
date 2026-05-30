@@ -2,17 +2,7 @@ import Foundation
 
 /// Controls SketchyBar visibility by shelling out to the `sketchybar` CLI.
 public final class SketchyBarController: BarController {
-    private let sketchybarPath: String
-
-    public init() {
-        if FileManager.default.fileExists(atPath: "/opt/homebrew/bin/sketchybar") {
-            sketchybarPath = "/opt/homebrew/bin/sketchybar"
-        } else if FileManager.default.fileExists(atPath: "/usr/local/bin/sketchybar") {
-            sketchybarPath = "/usr/local/bin/sketchybar"
-        } else {
-            sketchybarPath = "sketchybar"
-        }
-    }
+    public init() {}
 
     public func hide() {
         // Instant hide — macOS menu bar is already sliding in
@@ -27,8 +17,8 @@ public final class SketchyBarController: BarController {
 
     private func run(arguments: [String]) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: sketchybarPath)
-        process.arguments = arguments
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["sketchybar"] + arguments
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
 
@@ -42,8 +32,8 @@ public final class SketchyBarController: BarController {
 
     private func runAsync(arguments: [String]) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: sketchybarPath)
-        process.arguments = arguments
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["sketchybar"] + arguments
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
 

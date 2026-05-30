@@ -25,17 +25,7 @@ public struct PrerequisiteReport {
 }
 
 public final class PrerequisiteChecker {
-    private let sketchybarPath: String
-
-    public init() {
-        if FileManager.default.fileExists(atPath: "/opt/homebrew/bin/sketchybar") {
-            sketchybarPath = "/opt/homebrew/bin/sketchybar"
-        } else if FileManager.default.fileExists(atPath: "/usr/local/bin/sketchybar") {
-            sketchybarPath = "/usr/local/bin/sketchybar"
-        } else {
-            sketchybarPath = "sketchybar"
-        }
-    }
+    public init() {}
 
     public func check() -> PrerequisiteReport {
         var issues: [String] = []
@@ -95,8 +85,8 @@ public final class PrerequisiteChecker {
 
     private func querySketchyBar() -> (running: Bool, topmost: String?) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: sketchybarPath)
-        process.arguments = ["--query", "bar"]
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["sketchybar", "--query", "bar"]
 
         let pipe = Pipe()
         process.standardOutput = pipe
