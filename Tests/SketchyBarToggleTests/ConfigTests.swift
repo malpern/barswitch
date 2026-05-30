@@ -6,6 +6,7 @@ final class ConfigTests: XCTestCase {
     func testDefaultConfig() throws {
         let config = try parseArguments([])
         XCTAssertEqual(config.triggerZone, 10)
+        XCTAssertEqual(config.untriggerZone, 30)
         XCTAssertEqual(config.menuBarHeight, 50)
         XCTAssertEqual(config.debounce, 0.15)
         XCTAssertFalse(config.checkPermissions)
@@ -22,6 +23,11 @@ final class ConfigTests: XCTestCase {
     func testMenuBarHeight() throws {
         let config = try parseArguments(["--menu-bar-height", "44"])
         XCTAssertEqual(config.menuBarHeight, 44)
+    }
+
+    func testUntriggerZone() throws {
+        let config = try parseArguments(["--untrigger-zone", "25"])
+        XCTAssertEqual(config.untriggerZone, 25)
     }
 
     func testDebounceConvertsMillisecondsToSeconds() throws {

@@ -11,6 +11,7 @@ public final class BarStateMachine {
     public private(set) var state: BarState = .visible
 
     public let triggerZone: CGFloat
+    public let untriggerZone: CGFloat
     public let menuBarHeight: CGFloat
     public let debounceInterval: TimeInterval
 
@@ -21,12 +22,14 @@ public final class BarStateMachine {
     public init(
         controller: BarController,
         triggerZone: CGFloat = 10,
+        untriggerZone: CGFloat = 30,
         menuBarHeight: CGFloat = 50,
         debounceInterval: TimeInterval = 0.15,
         timerQueue: DispatchQueue = .main
     ) {
         self.controller = controller
         self.triggerZone = triggerZone
+        self.untriggerZone = untriggerZone
         self.menuBarHeight = menuBarHeight
         self.debounceInterval = debounceInterval
         self.timerQueue = timerQueue
@@ -56,7 +59,7 @@ public final class BarStateMachine {
     /// If the click is outside the trigger zone, immediately restore SketchyBar
     /// so that window title bars near the top of the screen remain interactive.
     public func handleMouseClick(distanceFromTop: CGFloat) {
-        guard state == .hidden, distanceFromTop >= triggerZone else { return }
+        guard state == .hidden, distanceFromTop >= untriggerZone else { return }
         cancelDebounce()
         state = .visible
         controller.show()

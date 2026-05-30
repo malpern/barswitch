@@ -247,27 +247,40 @@ final class StateMachineTests: XCTestCase {
 
     // MARK: - Click-to-restore behavior
 
-    func testClickInHiddenStateOutsideTriggerZoneRestoresBar() {
+    func testClickInHiddenStateOutsideUntriggerZoneRestoresBar() {
         let mock = MockBarController()
-        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, untriggerZone: 30, menuBarHeight: 50)
 
         sm.handleMousePosition(distanceFromTop: 5) // hide
         XCTAssertEqual(sm.state, .hidden)
         mock.reset()
 
-        sm.handleMouseClick(distanceFromTop: 30) // click in menu bar zone but outside trigger
+        sm.handleMouseClick(distanceFromTop: 40) // click below untrigger zone
         XCTAssertEqual(sm.state, .visible)
         XCTAssertEqual(mock.showCallCount, 1)
     }
 
-    func testClickInHiddenStateInsideTriggerZoneDoesNotRestore() {
+    func testClickInHiddenStateInsideUntriggerZoneDoesNotRestore() {
         let mock = MockBarController()
-        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, untriggerZone: 30, menuBarHeight: 50)
 
         sm.handleMousePosition(distanceFromTop: 5) // hide
         XCTAssertEqual(sm.state, .hidden)
 
-        sm.handleMouseClick(distanceFromTop: 5) // click still in trigger zone (using menu bar)
+        sm.handleMouseClick(distanceFromTop: 20) // click inside untrigger zone (menu bar area)
+        XCTAssertEqual(sm.state, .hidden)
+    }
+
+    func testClickBetweenTriggerAndUntriggerZoneDoesNotRestore() {
+        // Key split-threshold test: triggerZone=10, untriggerZone=30.
+        // A click at 15px is outside triggerZone but inside untriggerZone — should NOT restore.
+        let mock = MockBarController()
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, untriggerZone: 30, menuBarHeight: 50)
+
+        sm.handleMousePosition(distanceFromTop: 5) // hide
+        XCTAssertEqual(sm.state, .hidden)
+
+        sm.handleMouseClick(distanceFromTop: 15) // between the two thresholds
         XCTAssertEqual(sm.state, .hidden)
     }
 
@@ -285,6 +298,7 @@ final class StateMachineTests: XCTestCase {
         let sm = BarStateMachine(
             controller: mock,
             triggerZone: 10,
+            untriggerZone: 30,
             menuBarHeight: 50,
             debounceInterval: 0.1
         )
@@ -300,7 +314,7 @@ final class StateMachineTests: XCTestCase {
 
     func testClickBelowMenuBarZoneRestoresBar() {
         let mock = MockBarController()
-        let sm = BarStateMachine(controller: mock, triggerZone: 10, menuBarHeight: 50)
+        let sm = BarStateMachine(controller: mock, triggerZone: 10, untriggerZone: 30, menuBarHeight: 50)
 
         sm.handleMousePosition(distanceFromTop: 5) // hide
         mock.reset()
