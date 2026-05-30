@@ -2,6 +2,7 @@ import Foundation
 
 public struct Config: Equatable {
     public var triggerZone: CGFloat = 10
+    public var untriggerZone: CGFloat = 30
     public var menuBarHeight: CGFloat = 50
     public var debounce: TimeInterval = 0.15
     public var checkPermissions = false
@@ -28,6 +29,11 @@ public func parseArguments(_ args: [String]) throws -> Config {
             i += 1
             if i < args.count, let val = Double(args[i]) {
                 config.triggerZone = CGFloat(val)
+            }
+        case "--untrigger-zone":
+            i += 1
+            if i < args.count, let val = Double(args[i]) {
+                config.untriggerZone = CGFloat(val)
             }
         case "--menu-bar-height":
             i += 1
