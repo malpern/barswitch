@@ -8,6 +8,7 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(config.triggerZone, 10)
         XCTAssertEqual(config.menuBarHeight, 50)
         XCTAssertEqual(config.debounce, 0.15)
+        XCTAssertNil(config.yOffset)
         XCTAssertFalse(config.checkPermissions)
         XCTAssertFalse(config.setup)
         XCTAssertFalse(config.showVersion)
@@ -62,6 +63,11 @@ final class ConfigTests: XCTestCase {
                 return
             }
         }
+    }
+
+    func testYOffset() throws {
+        let config = try parseArguments(["--y-offset", "10"])
+        XCTAssertEqual(config.yOffset, 10)
     }
 
     func testFloatingPointTriggerZone() throws {
