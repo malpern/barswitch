@@ -4,6 +4,7 @@ public struct Config: Equatable {
     public var triggerZone: CGFloat = 10
     public var menuBarHeight: CGFloat = 50
     public var debounce: TimeInterval = 0.15
+    public var yOffset: CGFloat? = nil
     public var checkPermissions = false
     public var setup = false
     public var showVersion = false
@@ -47,6 +48,11 @@ public func parseArguments(_ args: [String]) throws -> Config {
             config.showVersion = true
         case "--help", "-h":
             config.showHelp = true
+        case "--y-offset":
+            i += 1
+            if i < args.count, let val = Double(args[i]) {
+                config.yOffset = CGFloat(val)
+            }
         case "--debug":
             config.debug = true
         default:
